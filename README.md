@@ -85,7 +85,7 @@ All parameters are rigged to the master **`[SystemName]_Controller`** layer as n
 4. Customize dimensions, wind speed, wind direction vector, and wiggle parameters.
 5. Click **Build / Create WindBox + Cube**.
 6. A master controller null, 6 guide layer cube faces, and particles will be automatically created and animated in 3D space!
-7. Use **Sync to Controller** to push modified panel values to an existing controller, or **Read Controller** to pull values back into the UI.
+7. All parameters can be keyframed and customized directly on the Master Controller null in After Effects via native Expression Controls.
 
 ---
 
