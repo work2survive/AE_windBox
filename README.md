@@ -1,4 +1,4 @@
-# AE WindBox (v1.0)
+# AE WindBox (v1.1)
 
 [![Live Browser Simulator](https://img.shields.io/badge/Live%20Demo-AE%20ScriptUI%20Simulator-2c8cff?style=for-the-badge&logo=javascript)](https://work2survive.github.io/AE_JS_builder/?jsx=AE_WindBox_Panel.jsx&autobuild=true)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
@@ -7,44 +7,36 @@
 
 **Live Demo**: [https://work2survive.github.io/AE_JS_builder/?jsx=AE_WindBox_Panel.jsx&autobuild=true](https://work2survive.github.io/AE_JS_builder/?jsx=AE_WindBox_Panel.jsx&autobuild=true)
 
-A procedural 3D Wind Volume Particle System for Adobe After Effects, integrated with the parametric 3D Cube Maker architecture from:
-**[work2survive/AE-Cube-Maker-3D](https://github.com/work2survive/AE-Cube-Maker-3D)**.
+A procedural 3D Wind Volume Particle System for Adobe After Effects, integrated with the parametric 3D Cube Maker architecture from **[work2survive/AE-Cube-Maker-3D](https://github.com/work2survive/AE-Cube-Maker-3D)**.
+
+The primary purpose of **AE WindBox** is to create a **virtual 3D cube bounding box visible only as a Guide Layer** in After Effects. Inside this bounded 3D volume, particles move and rotate along the wind vector with continuous wrapping, aerodynamic orientation, and turbulence. Includes built-in presets (**Leaves**, **Clouds**, **Stars**, **Mountains**, **Circles**, **Squares**), as well as direct instantiation of **Project Compositions** and **Selected Timeline Layers**.
 
 > **Live Browser Simulator**: Test and preview this tool interactively in the [AE JS & ScriptUI Simulator](https://work2survive.github.io/AE_JS_builder/?jsx=AE_WindBox_Panel.jsx&autobuild=true) directly in your web browser without launching After Effects!
 
 ---
 
-## 🎲 3D Cube Maker Architecture
+## 🎯 Key Features
 
-The 3D volume bounding box is built directly using the 6-face parametric shape layer architecture from `AE-Cube-Maker-3D`:
+### 1. Virtual 3D Cube (Guide Layer — Viewport Only)
+- **Viewport Framing Only**: All 6 bounding faces are created as native After Effects **Guide Layers** (`guideLayer = true`) by default. They remain clearly visible in the working canvas for framing your camera and motion, but are **100% invisible in final exports and renders**.
+- **6-Face Rigged Geometry**: Front, Back, Left, Right, Top, and Bottom faces parented to the Master Controller with dynamic expressions driving size, position, fill color, opacity, and outline stroke.
+- **Collapsible Timeline**: Face layers are marked as shy layers (`shy = true`), keeping the composition timeline tidy.
 
-- **6 Parametric 3D Shape Layers**:
-  - `Face_Front`, `Face_Back`, `Face_Left`, `Face_Right`, `Face_Top`, `Face_Bottom`
-- **White Stroke Lines & Face Colors**: Crisp outline edges and customizable face fill colors with live color pickers, opacity, and stroke width.
-- **Dynamic Expression Rigging**:
-  All 6 faces are parented to the Master Controller. Their 3D positions, dimensions, fill opacity, and stroke are driven by live expressions linked to:
-  - `WindBox - Size X`
-  - `WindBox - Size Y`
-  - `WindBox - Size Z`
-  - `WindBox - Cube Fill Color`
-  - `WindBox - Cube Fill Opacity`
-  - `WindBox - Cube Stroke Color`
-  - `WindBox - Cube Stroke Width`
-  - `WindBox - Cube Stroke Opacity`
-  When you keyframe or change the box size in the timeline, the 3D cube expands, contracts, and tracks the volume in real time!
-- **Clean Timeline (`shy = true`)**: The face layers are marked as shy layers, keeping your composition timeline uncluttered.
-- **Optional Guide Layer**: Choose whether the cube should act as an editing-only visualizer (`Guide Layer = true`) or render to the final export.
+### 2. Wind-Driven Motion & Directional Rotation
+- **Wind Vector $[X, Y, Z]$**: Particles travel continuously through 3D space driven by wind speed and a 3D direction vector.
+- **Align Rotation to Wind**: When enabled, particles dynamically calculate the wind angle $\text{atan2}(dY, dX)$ and steer along the wind vector, mimicking natural aerodynamic flight (leaves, debris, arrows).
+- **Seamless 3D Volume Wrapping**: When particles leave the 3D cube bounding box, they seamlessly wrap around to the opposite side, ensuring endless organic flow.
+- **3-Axis Positional & Rotational Turbulence**: Realistic atmospheric turbulence with independent frequency and amplitude controls on X, Y, and Z.
 
----
-
-## 💨 Procedural Wind Dynamics & Particles
-
-- **Continuous 3D Flow**: Particles move smoothly through 3D space driven by wind speed and a normalized 3D direction vector $[X, Y, Z]$.
-- **Seamless Volume Wrapping**: When particles leave the 3D cube bounding box, they seamlessly wrap around to the opposite side, ensuring continuous flow without popping.
-- **3-Axis Positional Turbulence**: Independent wiggle frequency and amplitudes along the X, Y, and Z axes.
-- **3-Axis Rotational Turbulence**: Independent angular wiggle frequency and amplitudes for pitch, yaw, and roll.
-- **Dynamic Particle Culling**: Scale and opacity expressions seamlessly hide inactive particles when the particle count slider is adjusted or animated.
-- **Multiple Particle Sources**: Choose between built-in 3D vector circles, 3D vector squares, or custom selected composition layer(s).
+### 3. Presets & Particle Sources
+- **🍃 Falling Leaves**: Procedural Bézier teardrop leaf paths with organic flutter, tumbling wiggle, aerodynamic wind alignment, and natural autumn palettes (forest green, amber, orange, crimson).
+- **☁️ Drifting Clouds**: Multi-puff 6-node cloud vector shapes drifting gently on a slow horizontal breeze.
+- **⭐ Cosmic Stars**: 5-point vector stars with celestial shimmer and gentle cosmic drift.
+- **⛰️ Parallax Mountains**: Low-poly geometric mountain silhouettes with majestic slow horizon glide.
+- **⚪ 3D Circles**: Dust motes, snow, bubbles, or spores.
+- **⬛ 3D Squares**: Confetti, geometric debris, or pixel tiles.
+- **🎬 Project Composition**: Instantiate any existing CompItem from your active After Effects project via dropdown picker!
+- **🎯 Selected Layer(s)**: Duplicate and drive any user-selected timeline layer(s) as the particle source.
 
 ---
 
@@ -54,17 +46,15 @@ All parameters are rigged to the master **`[SystemName]_Controller`** layer as n
 
 | Parameter | Type | Description |
 | :--- | :--- | :--- |
-| **Size X, Y, Z** | *Slider* | Defines 3D volume dimensions. Drives both particle wrapping and the 6 faces of the 3D cube. |
+| **Size X, Y, Z** | *Slider* | Defines 3D volume dimensions. Drives both particle wrapping and the 6 faces of the virtual cube. |
 | **Wind Speed** | *Slider* | Speed of particles along the wind direction vector (in pixels/second). |
-| **Number of Particles** | *Slider* | Controls active particle count with smooth visibility culling (opacity & scale). |
 | **Direction X, Y, Z** | *Slider* | 3D directional vector controlling wind trajectory. Auto-normalizes in 3D space. |
-| **Pos Wiggle Freq** | *Slider* | Frequency (Hz / wiggles per second) of positional turbulence. |
-| **Pos Wiggle Amp X, Y, Z** | *Slider* | Independent amplitude (pixels) for positional wiggle on X, Y, and Z axes. |
-| **Rot X Wiggle Amp & Freq** | *Slider* | Amplitude (degrees) and Frequency (Hz) for X-axis rotational turbulence. |
-| **Rot Y Wiggle Amp & Freq** | *Slider* | Amplitude (degrees) and Frequency (Hz) for Y-axis rotational turbulence. |
-| **Rot Z Wiggle Amp & Freq** | *Slider* | Amplitude (degrees) and Frequency (Hz) for Z-axis rotational turbulence. |
-| **Cube Fill Color & Opacity** | *Color / Slider* | Color and opacity controls for the 3D cube sides. |
-| **Cube Stroke Color & Width** | *Color / Slider* | Color, width, and opacity controls for the 3D cube outline edges. |
+| **Align to Wind** | *Checkbox* | When enabled, dynamically rotates particles to orient along the wind vector. |
+| **Number of Particles** | *Slider* | Controls active particle count with smooth visibility culling (opacity & scale). |
+| **Cube Guide Layer** | *Checkbox* | Toggles Guide Layer status on the virtual bounding box. |
+| **Cube Fill & Stroke** | *Color / Slider* | Live color pickers, opacity, and stroke width for the virtual cube faces. |
+| **Pos Wiggle Freq & Amp** | *Slider* | 3-axis positional turbulence frequency (Hz) and amplitudes (px) for X, Y, Z. |
+| **Rot X, Y, Z Wiggle** | *Slider* | Independent rotational turbulence amplitudes (degrees) and frequencies (Hz) for pitch, yaw, and roll. |
 
 ---
 
@@ -85,12 +75,13 @@ All parameters are rigged to the master **`[SystemName]_Controller`** layer as n
 
 ## 🛠️ Usage
 
-1. Open or create a composition in Adobe After Effects.
-2. Open the **AE WindBox** panel.
-3. Configure the box dimensions, wind speed, direction, wiggle parameters, and cube appearance.
-4. Click **Build / Create WindBox + Cube**.
-5. The rigged controller, 3D cube faces, and particles will be automatically created and animated in your composition!
-6. Use **Sync to Controller** to push modified panel values to an existing system, or **Read Controller** to pull values from the selected controller back into the UI.
+1. Open or create an active composition in Adobe After Effects.
+2. Launch the **AE WindBox** panel.
+3. Select a preset (e.g. **🍃 Falling Leaves**, **☁️ Drifting Clouds**, **⭐ Stars**, or **🎬 Project Composition**).
+4. Customize dimensions, wind speed, wind direction vector, and wiggle parameters.
+5. Click **Build / Create WindBox + Cube**.
+6. A master controller null, 6 guide layer cube faces, and particles will be automatically created and animated in 3D space!
+7. Use **Sync to Controller** to push modified panel values to an existing controller, or **Read Controller** to pull values back into the UI.
 
 ---
 
