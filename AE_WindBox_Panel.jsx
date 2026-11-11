@@ -247,24 +247,69 @@
             pathPropStar.setValue(starShape);
             finalColor = starPalette[(pIndex - 1) % starPalette.length];
 
-        } else if (sourceIndex === 3) { // ⛰️ Mountains (Low-Poly Peak Silhouette)
+        } else if (sourceIndex === 3) { // ⛰️ Mountains (Diverse Low-Poly Ridges along X Axis)
             var pathGroupMnt = contents.addProperty("ADBE Vector Shape - Group");
             var pathPropMnt = pathGroupMnt.property("ADBE Vector Shape");
             var mntShape = new Shape();
-            var mw = shapeSize, mh = shapeSize * 0.7;
-            mntShape.vertices = [
-                [-mw * 0.5, mh * 0.35],
-                [-mw * 0.22, -mh * 0.1],
-                [-mw * 0.08, mh * 0.05],
-                [0, -mh * 0.45],
-                [mw * 0.2, -mh * 0.08],
-                [mw * 0.5, mh * 0.35]
-            ];
-            mntShape.inTangents = [[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]];
-            mntShape.outTangents = [[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]];
+            var mw = shapeSize, mh = shapeSize * 0.65;
+            var variant = (pIndex - 1) % 4;
+
+            if (variant === 0) { // Alpine Horn Peak
+                mntShape.vertices = [
+                    [-mw * 0.5, mh * 0.4],
+                    [-mw * 0.28, -mh * 0.05],
+                    [-mw * 0.1, mh * 0.08],
+                    [0, -mh * 0.5],
+                    [mw * 0.18, -mh * 0.12],
+                    [mw * 0.35, mh * 0.1],
+                    [mw * 0.5, mh * 0.4]
+                ];
+            } else if (variant === 1) { // Twin Peak Massif
+                mntShape.vertices = [
+                    [-mw * 0.5, mh * 0.4],
+                    [-mw * 0.22, -mh * 0.42],
+                    [-mw * 0.04, -mh * 0.1],
+                    [mw * 0.18, -mh * 0.48],
+                    [mw * 0.38, -mh * 0.02],
+                    [mw * 0.5, mh * 0.4]
+                ];
+            } else if (variant === 2) { // Jagged Ridge
+                mntShape.vertices = [
+                    [-mw * 0.5, mh * 0.4],
+                    [-mw * 0.35, -mh * 0.15],
+                    [-mw * 0.18, -mh * 0.38],
+                    [0, -mh * 0.25],
+                    [mw * 0.22, -mh * 0.45],
+                    [mw * 0.38, -mh * 0.2],
+                    [mw * 0.5, mh * 0.4]
+                ];
+            } else { // Broad Horizon Mountain
+                mntShape.vertices = [
+                    [-mw * 0.5, mh * 0.4],
+                    [-mw * 0.3, -mh * 0.22],
+                    [-mw * 0.05, -mh * 0.35],
+                    [mw * 0.15, -mh * 0.28],
+                    [mw * 0.35, -mh * 0.12],
+                    [mw * 0.5, mh * 0.4]
+                ];
+            }
+            mntShape.inTangents = [];
+            mntShape.outTangents = [];
+            for (var vi = 0; vi < mntShape.vertices.length; vi++) {
+                mntShape.inTangents.push([0, 0]);
+                mntShape.outTangents.push([0, 0]);
+            }
             mntShape.closed = true;
             pathPropMnt.setValue(mntShape);
-            finalColor = [0.32, 0.38, 0.46, 1]; // Slate mountain silhouette
+
+            // Layered atmospheric slate & mountain blues
+            var mountainPalette = [
+                [0.22, 0.28, 0.36, 1], // Deep Front Mountain Slate
+                [0.28, 0.35, 0.45, 1], // Mid-Range Granite Blue
+                [0.36, 0.44, 0.54, 1], // Distant Mist Mountain
+                [0.44, 0.52, 0.62, 1]  // Atmospheric Horizon Ridge
+            ];
+            finalColor = mountainPalette[variant];
 
         } else if (sourceIndex === 4) { // ⚪ 3D Circles
             var ellipse = contents.addProperty("ADBE Vector Shape - Ellipse");
@@ -724,18 +769,26 @@
                 editRotYAmp.text = "20"; editRotYFreq.text = "0.5";
                 editRotZAmp.text = "45"; editRotZFreq.text = "0.8";
 
-            } else if (pIdx === 3) { // ⛰️ Mountains
+            } else if (pIdx === 3) { // ⛰️ Mountains (Generated around X Axis, moving via Z wind towards camera)
                 dropSource.selection = 3;
-                editSizeX.text = "2000"; editSizeY.text = "700"; editSizeZ.text = "1600";
-                editSpeed.text = "60"; editDirX.text = "-1.0"; editDirY.text = "0.0"; editDirZ.text = "0.0";
-                chkAlignWind.value = false;
-                editCount.text = "12";
-                editPartSize.text = "120";
-                cpPartColor.setColor("#4a5568", false);
-                editPosFreq.text = "0.2"; editPosAmpX.text = "20"; editPosAmpY.text = "10"; editPosAmpZ.text = "20";
-                editRotXAmp.text = "0"; editRotXFreq.text = "0.1";
-                editRotYAmp.text = "5"; editRotYFreq.text = "0.1";
-                editRotZAmp.text = "0"; editRotZFreq.text = "0.1";
+                editSizeX.text = "3200"; // Wide horizontal horizon span along X
+                editSizeY.text = "250";  // Height constrained to horizon ground plane
+                editSizeZ.text = "3600"; // Deep depth volume corridor
+                editSpeed.text = "220";  // Forward travel speed towards camera
+                editDirX.text = "0.0";
+                editDirY.text = "0.0";
+                editDirZ.text = "-1.0";  // Move using Z wind towards the camera!
+                chkAlignWind.value = false; // Stand upright facing the camera as billboard cards
+                editCount.text = "24";
+                editPartSize.text = "380"; // Large mountain silhouette scale
+                cpPartColor.setColor("#3a4a5e", false);
+                editPosFreq.text = "0.1";
+                editPosAmpX.text = "20";
+                editPosAmpY.text = "0";  // Ground anchored, no vertical bobbing
+                editPosAmpZ.text = "0";
+                editRotXAmp.text = "0"; editRotXFreq.text = "0.0";
+                editRotYAmp.text = "0"; editRotYFreq.text = "0.0";
+                editRotZAmp.text = "0"; editRotZFreq.text = "0.0";
 
             } else if (pIdx === 4) { // ⚪ 3D Circles
                 dropSource.selection = 4;
@@ -954,6 +1007,7 @@
                 addSlider(ctrlLayer, "WindBox - Direction Y", dirY);
                 addSlider(ctrlLayer, "WindBox - Direction Z", dirZ);
                 addCheckbox(ctrlLayer, "WindBox - Align to Wind", alignToWind ? 1 : 0);
+                addSlider(ctrlLayer, "WindBox - Particle Type", particleType);
 
                 // Cube appearance & Guide layer controls
                 addCheckbox(ctrlLayer, "WindBox - Cube Guide Layer", isCubeGuide ? 1 : 0);
@@ -1089,9 +1143,13 @@
                     '',
                     'var pIndex = effect("WindBox Particle Index")(1).value;',
                     'seedRandom(pIndex * 9973 + 17, true);',
+                    'var pType = 0;',
+                    'try { pType = ctrl.effect("WindBox - Particle Type")(1).value; } catch(e) {}',
+                    'var isMnt = (pType === 3);',
+                    'var initY = isMnt ? (sY * 0.35 + (random() - 0.5) * (sY * 0.1)) : ((random() - 0.5) * sY);',
                     'var initPos = [',
                     '    (random() - 0.5) * sX,',
-                    '    (random() - 0.5) * sY,',
+                    '    initY,',
                     '    (random() - 0.5) * sZ',
                     '];',
                     '',
