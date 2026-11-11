@@ -30,7 +30,7 @@ The primary purpose of **AE WindBox** is to create a **virtual 3D cube bounding 
 
 ### 3. Presets & Particle Sources
 - **🍃 Falling Leaves**: Procedural Bézier teardrop leaf paths with organic flutter, tumbling wiggle, aerodynamic wind alignment, and natural autumn palettes (forest green, amber, orange, crimson).
-- **☁️ Drifting Clouds**: Multi-puff 6-node cloud vector shapes drifting gently on a slow horizontal breeze.
+- **☁️ Drifting Clouds**: Multi-puff billowy clouds traversing a wide 3D volume on a diagonal breeze ([0.85, -0.12, -0.65]), passing gently in front of the camera with soft ethereal translucency.
 - **⭐ Cosmic Stars**: 5-point vector stars with celestial shimmer and gentle cosmic drift.
 - **⛰️ Parallax Mountains**: Low-poly geometric mountain silhouettes with majestic slow horizon glide.
 - **⚪ 3D Circles**: Dust motes, snow, bubbles, or spores.
