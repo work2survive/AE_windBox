@@ -29,6 +29,7 @@ The primary purpose of **AE WindBox** is to create a **virtual 3D cube bounding 
 - **3-Axis Positional & Rotational Turbulence**: Realistic atmospheric turbulence with independent frequency and amplitude controls on X, Y, and Z.
 
 ### 3. Presets & Particle Sources
+- **External JSON Configuration (`AE_windbox/presets.json`)**: All presets and physical parameters are loaded from an external JSON file located in `AE_windbox/presets.json` next to the script. If the folder and file do not exist on first launch, the script automatically generates them with all factory defaults. Edit freely or add your own custom presets, then press the reload button (**🔄**) in the UI to instantly refresh without restarting After Effects!
 - **🍃 Falling Leaves**: Procedural Bézier teardrop leaf paths with organic flutter, tumbling wiggle, aerodynamic wind alignment, and natural autumn palettes (forest green, amber, orange, crimson).
 - **☁️ Drifting Clouds**: Multi-puff billowy clouds traversing a wide 3D volume on a diagonal breeze ([0.85, -0.12, -0.65]), passing gently in front of the camera with soft ethereal translucency.
 - **⭐ Cosmic Stars**: 5-point vector stars with celestial shimmer and gentle cosmic drift.
