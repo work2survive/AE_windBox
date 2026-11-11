@@ -1,45 +1,192 @@
-/**
- * AE WindBox Panel - ScriptUI for Adobe After Effects
- * ----------------------------------------------------
- * A 3D procedural wind volume particle system for After Effects,
- * integrated with 3D Cube Maker architecture from:
- * https://github.com/work2survive/AE-Cube-Maker-3D
- * 
- * Features:
- * - 3D Cube Bounding Box: 6 parametric 3D shape faces (Front, Back, Left, Right, Top, Bottom)
- *   with white lines and semitransparent grey sides (very low opacity), dynamically driven
- *   by Size X, Size Y, Size Z expressions.
- * - Animatable Size X, Size Y, Size Z linked across both particles and 3D cube.
- * - Wind Dynamics: Speed & Direction [X, Y, Z] (animatable).
- * - Particle Count control with seamless active culling (animatable).
- * - Seamless 3D boundary wrapping inside the cube volume.
- * - Positional Wiggle: 3-Axis Amount [X, Y, Z] & Frequency (animatable).
- * - Rotational Wiggle: Independent Frequency & Amount for X, Y, Z rotations (animatable).
- * - Master 3D Controller: Moving or rotating the controller moves and reorients the entire cube and particles.
- * - Particle sources: Built-in 3D Vector Shapes or Custom Selected Layer(s).
- * - Multi-language AE compatibility (using property index referencing).
- * 
- * Compatibility: Adobe After Effects CS6 through CC 2025+
- */
+// Co-authored & architected with Google DeepMind Antigravity.
+// =============================================================================
+// ADOBE AFTER EFFECTS EXTENDSCRIPT & SCRIPTUI PANEL: AE WINDBOX v1.0
+// =============================================================================
+//
+// PURPOSE:
+//   A procedural 3D Wind Volume Particle System for Adobe After Effects,
+//   integrated with the parametric 3D Cube Maker architecture from:
+//   https://github.com/work2survive/AE-Cube-Maker-3D
+//
+// ARCHITECTURE & WORKFLOW:
+//   1. 3D Cube Bounding Box (6 Parametric Shape Faces):
+//      - Front, Back, Left, Right, Top, Bottom
+//      - White outline strokes and semitransparent grey sides (animatable fill & stroke)
+//      - Expressions dynamically link face positions & sizes to Master Controller
+//   2. Procedural Wind Particles:
+//      - Speed, 3D Direction vector [X, Y, Z] with auto-normalization
+//      - 3D spatial wrapping within the cube volume
+//      - 3-axis positional turbulence & independent 3-axis rotational turbulence
+//      - Particle count control with seamless active culling
+//   3. Master 3D Controller:
+//      - Single null layer with Expression Slider & Color Controls
+//      - Moving or rotating the controller transforms the entire wind volume in 3D
+//
+// COMPATIBILITY:
+//   - Adobe After Effects CS6, CC 2014 - 2026+ (ExtendScript engine)
+//   - Works both as a dockable panel (in ScriptUI Panels folder) and as a floating palette.
+// =============================================================================
 
 (function (thisObj) {
     "use strict";
+
+    // ==========================================
+    // COLOR HELPERS & SCRIPTUI COLOR PICKER
+    // ==========================================
+    function hexToRgb(hex) {
+        hex = String(hex).replace("#", "");
+        if (hex.length === 3) {
+            hex = hex.charAt(0) + hex.charAt(0) + hex.charAt(1) + hex.charAt(1) + hex.charAt(2) + hex.charAt(2);
+        }
+        var num = parseInt(hex, 16);
+        return [
+            ((num >> 16) & 255) / 255, // Red channel   (0.0 to 1.0)
+            ((num >> 8) & 255) / 255,  // Green channel (0.0 to 1.0)
+            (num & 255) / 255          // Blue channel  (0.0 to 1.0)
+        ];
+    }
+
+    function rgbToHex(rgb) {
+        if (!rgb || rgb.length < 3) return "#8C8C8C";
+        var r = Math.round(Math.max(0, Math.min(1, rgb[0])) * 255).toString(16);
+        var g = Math.round(Math.max(0, Math.min(1, rgb[1])) * 255).toString(16);
+        var b = Math.round(Math.max(0, Math.min(1, rgb[2])) * 255).toString(16);
+        if (r.length < 2) r = "0" + r;
+        if (g.length < 2) g = "0" + g;
+        if (b.length < 2) b = "0" + b;
+        return "#" + r + g + b;
+    }
+
+    function createColorPicker(parent, defaultHex) {
+        var grp = parent.add("group");
+        grp.orientation = "row";
+        grp.spacing = 6;
+        grp.alignChildren = ["left", "center"];
+
+        var btnSwatch = grp.add("button", undefined, "");
+        btnSwatch.preferredSize = [36, 22];
+        btnSwatch.helpTip = "Click to pick color (After Effects native Color Picker)";
+
+        var txtHex = grp.add("edittext", undefined, defaultHex);
+        txtHex.preferredSize = [70, 22];
+        txtHex.characters = 7;
+        txtHex.helpTip = "Direct hex color input (e.g. #8C8C8C)";
+
+        var picker = {
+            group: grp,
+            button: btnSwatch,
+            edittext: txtHex,
+            _color: defaultHex,
+            value: defaultHex,
+            onChange: null,
+            setColor: function(newHex, triggerChange) {
+                setColor(newHex, triggerChange);
+            }
+        };
+
+        btnSwatch.onDraw = function() {
+            try {
+                var g = this.graphics;
+                var rgb = hexToRgb(picker._color);
+                var brush = g.newBrush(g.BrushType.SOLID_COLOR, [rgb[0], rgb[1], rgb[2], 1.0]);
+                var pen = g.newPen(g.PenType.SOLID_COLOR, [0.7, 0.7, 0.7, 1.0], 1);
+                g.newPath();
+                g.rectPath(0, 0, this.size ? this.size[0] : 36, this.size ? this.size[1] : 22);
+                g.fillPath(brush);
+                g.strokePath(pen);
+            } catch(e) {}
+        };
+
+        function setColor(newHex, triggerChange) {
+            if (!newHex) return;
+            if (newHex.indexOf("#") !== 0) newHex = "#" + newHex;
+            picker._color = newHex;
+            picker.value = newHex;
+            txtHex.text = newHex.toUpperCase();
+
+            try {
+                if (btnSwatch.notify) {
+                    btnSwatch.notify("onDraw");
+                }
+            } catch(e) {}
+
+            if (btnSwatch.domElement) {
+                btnSwatch.domElement.style.backgroundColor = newHex;
+                btnSwatch.domElement.style.border = "1px solid #777";
+            }
+
+            if (triggerChange && typeof picker.onChange === "function") {
+                picker.onChange();
+            }
+        }
+
+        btnSwatch.onClick = function() {
+            var curHex = picker._color || "#8C8C8C";
+            if (typeof window !== "undefined" && typeof window.openWindowsColorPicker === "function") {
+                window.openWindowsColorPicker(curHex, function(selectedHex) {
+                    setColor(selectedHex, true);
+                });
+                return;
+            }
+
+            var hexNum = parseInt(curHex.replace("#", ""), 16);
+            var result = -1;
+            if (typeof $.colorPicker === "function") {
+                result = $.colorPicker(hexNum, function(selectedHex) {
+                    setColor(selectedHex, true);
+                });
+            }
+            if (result !== -1 && result !== undefined && result !== null) {
+                var hexStr = Number(result).toString(16);
+                while (hexStr.length < 6) hexStr = "0" + hexStr;
+                setColor("#" + hexStr, true);
+            }
+        };
+
+        txtHex.onChange = function() {
+            var val = txtHex.text.replace(/^\s+|\s+$/g, "");
+            if (val.indexOf("#") !== 0) val = "#" + val;
+            if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+                setColor(val, true);
+            } else {
+                txtHex.text = picker._color.toUpperCase();
+            }
+        };
+
+        setColor(defaultHex, false);
+        return picker;
+    }
 
     // ==========================================
     // UI BUILDER
     // ==========================================
     function buildWindBoxUI(thisObj) {
         var isPanel = (thisObj instanceof Panel);
-        var win = isPanel ? thisObj : new Window("palette", "AE WindBox Controller", undefined, {
+        var win = isPanel ? thisObj : new Window("palette", "AE WindBox v1.0", undefined, {
             resizeable: true
         });
+        if (!(thisObj instanceof Panel)) {
+            win.text = "AE WindBox v1.0";
+        }
 
         win.orientation = "column";
         win.alignChildren = ["fill", "top"];
         win.spacing = 6;
         win.margins = 8;
 
-        // ---------- HEADER / SYSTEM NAME ----------
+        // ---------------------------------------------------------------------
+        // UI Header (Panel Title + Version & Description)
+        // ---------------------------------------------------------------------
+        var pnlHeader = win.add("panel", undefined, "AE WindBox");
+        pnlHeader.orientation = "column";
+        pnlHeader.alignChildren = ["fill", "top"];
+        pnlHeader.alignment = ["fill", "top"];
+        pnlHeader.spacing = 3;
+        pnlHeader.margins = [10, 8, 10, 8];
+
+        var lblDesc = pnlHeader.add("statictext", undefined, "v1.0 - Procedural 3D Wind Volume Particle System with 3D Cube Bounding Box.");
+
+        // ---------- SYSTEM NAME & HELP ----------
         var headerGroup = win.add("group");
         headerGroup.orientation = "row";
         headerGroup.alignChildren = ["left", "center"];
@@ -53,12 +200,12 @@
         btnHelp.maximumSize = [24, 22];
         btnHelp.onClick = function () {
             alert(
-                "AE WindBox + 3D Cube Maker\n" +
-                "=========================\n" +
+                "AE WindBox + 3D Cube Maker (v1.0)\n" +
+                "=================================\n" +
                 "1. Set Box Dimensions (Size X, Y, Z), Wind Speed, Direction & Wiggle.\n" +
                 "2. The 3D Cube is constructed from 6 shape layers based on AE-Cube-Maker-3D architecture.\n" +
-                "3. It features white stroke lines and semitransparent grey sides with very low opacity.\n" +
-                "4. All parameters are rigged to the Master Controller as Expression Sliders,\n" +
+                "3. Features customizable stroke lines and semitransparent sides with live color pickers.\n" +
+                "4. All parameters are rigged to the Master Controller as Expression Sliders & Color Controls,\n" +
                 "   making both particles and the 3D cube 100% keyframeable in the timeline!\n\n" +
                 "Tip: Moving or rotating the Controller null transforms the entire wind volume in 3D world space.",
                 "About AE WindBox"
@@ -150,7 +297,7 @@
         tabCube.spacing = 6;
         tabCube.margins = 6;
 
-        var chkCreateCube = tabCube.add("checkbox", undefined, "Build 3D Cube (AE-Cube-Maker-3D)");
+        var chkCreateCube = tabCube.add("checkbox", undefined, "Build 3D Cube (AE-Cube-Maker-3D Architecture)");
         chkCreateCube.value = true;
 
         var chkCubeGuide = tabCube.add("checkbox", undefined, "Set Cube as Guide Layer (Viewport only)");
@@ -159,22 +306,40 @@
         var pnlCubeStyle = tabCube.add("panel", undefined, "Cube Appearance");
         pnlCubeStyle.orientation = "column";
         pnlCubeStyle.alignChildren = ["fill", "top"];
-        pnlCubeStyle.spacing = 4;
+        pnlCubeStyle.spacing = 6;
+
+        // Sides (Face) Color Picker
+        var grpCubeFill = pnlCubeStyle.add("group");
+        grpCubeFill.orientation = "row";
+        grpCubeFill.alignment = ["fill", "top"];
+        var lblCubeFill = grpCubeFill.add("statictext", undefined, "Sides Fill Color:");
+        lblCubeFill.preferredSize = [135, -1];
+        var cpCubeFill = createColorPicker(grpCubeFill, "#8c8c8c");
 
         // Sides Opacity
         var grpCubeSidesOp = pnlCubeStyle.add("group");
         grpCubeSidesOp.orientation = "row";
         grpCubeSidesOp.alignChildren = ["left", "center"];
-        grpCubeSidesOp.add("statictext", undefined, "Grey Sides Opacity (%):");
+        var lblSidesOp = grpCubeSidesOp.add("statictext", undefined, "Sides Opacity (%):");
+        lblSidesOp.preferredSize = [135, -1];
         var editCubeSidesOp = grpCubeSidesOp.add("edittext", undefined, "12");
         editCubeSidesOp.characters = 4;
-        grpCubeSidesOp.add("statictext", undefined, "(Semitransparent grey)");
+        grpCubeSidesOp.add("statictext", undefined, "(Semitransparent sides)");
+
+        // Stroke Color Picker
+        var grpCubeStroke = pnlCubeStyle.add("group");
+        grpCubeStroke.orientation = "row";
+        grpCubeStroke.alignment = ["fill", "top"];
+        var lblCubeStroke = grpCubeStroke.add("statictext", undefined, "Stroke Color:");
+        lblCubeStroke.preferredSize = [135, -1];
+        var cpCubeStroke = createColorPicker(grpCubeStroke, "#ffffff");
 
         // Stroke Width
         var grpCubeStrokeW = pnlCubeStyle.add("group");
         grpCubeStrokeW.orientation = "row";
         grpCubeStrokeW.alignChildren = ["left", "center"];
-        grpCubeStrokeW.add("statictext", undefined, "White Stroke Width (px):");
+        var lblStrokeW = grpCubeStrokeW.add("statictext", undefined, "Stroke Width (px):");
+        lblStrokeW.preferredSize = [135, -1];
         var editCubeStrokeW = grpCubeStrokeW.add("edittext", undefined, "2");
         editCubeStrokeW.characters = 4;
 
@@ -182,7 +347,8 @@
         var grpCubeStrokeOp = pnlCubeStyle.add("group");
         grpCubeStrokeOp.orientation = "row";
         grpCubeStrokeOp.alignChildren = ["left", "center"];
-        grpCubeStrokeOp.add("statictext", undefined, "Stroke Opacity (%):");
+        var lblStrokeOp = grpCubeStrokeOp.add("statictext", undefined, "Stroke Opacity (%):");
+        lblStrokeOp.preferredSize = [135, -1];
         var editCubeStrokeOp = grpCubeStrokeOp.add("edittext", undefined, "90");
         editCubeStrokeOp.characters = 4;
 
@@ -313,7 +479,7 @@
         grpActions.spacing = 4;
 
         var btnCreate = grpActions.add("button", undefined, "Build / Create WindBox + Cube");
-        btnCreate.preferredSize.height = 32;
+        btnCreate.preferredSize.height = 34;
 
         var grpSubActions = grpActions.add("group");
         grpSubActions.orientation = "row";
@@ -325,16 +491,19 @@
         var btnSelectSystem = grpSubActions.add("button", undefined, "Select System");
 
         // ---------- REPOSITORY FOOTER LINK ----------
-        var grpRepo = win.add("group");
-        grpRepo.orientation = "row";
-        grpRepo.alignChildren = ["center", "center"];
-        grpRepo.margins = [0, 2, 0, 0];
-        var lblRepo = grpRepo.add("statictext", undefined, "GitHub: work2survive/AE-Cube-Maker-3D");
-        lblRepo.helpTip = "Click to visit https://github.com/work2survive/AE-Cube-Maker-3D";
-        lblRepo.onClick = function () {
-            var url = "https://github.com/work2survive/AE-Cube-Maker-3D";
-            if ($.os.indexOf("Windows") !== -1) {
-                system.callSystem('cmd.exe /c start "" "' + url + '"');
+        var grpRepoLink = win.add("group");
+        grpRepoLink.orientation = "row";
+        grpRepoLink.alignment = ["fill", "bottom"];
+        grpRepoLink.alignChildren = ["center", "center"];
+        grpRepoLink.margins = [0, 4, 0, 0];
+        var lblRepoLink = grpRepoLink.add("statictext", undefined, "GitHub: work2survive/AE_windBox");
+        lblRepoLink.helpTip = "https://github.com/work2survive/AE_windBox";
+        lblRepoLink.onClick = function () {
+            var url = "https://github.com/work2survive/AE_windBox";
+            if (typeof window !== "undefined" && window.open) {
+                window.open(url, "_blank");
+            } else if ($.os.indexOf("Windows") !== -1) {
+                system.callSystem('explorer "' + url + '"');
             } else {
                 system.callSystem('open "' + url + '"');
             }
@@ -364,12 +533,12 @@
 
         // ---------- HELPER: SET TRANSFORM PROPERTY ----------
         function setTransformVal(layer, propName, val) {
-            var xform = layer.property("ADBE Transform Group") || layer.property("Transform");
+            var xform = layer.property("ADBE Transform Group") || layer.property("Transform") || layer.transform;
             if (xform) {
                 var p = null;
-                if (propName === "Position") p = xform.property("ADBE Position");
-                else if (propName === "Anchor Point") p = xform.property("ADBE Anchor Point");
-                else if (propName === "Orientation") p = xform.property("ADBE Orientation");
+                if (propName === "Position") p = xform.property("ADBE Position") || xform.position;
+                else if (propName === "Anchor Point") p = xform.property("ADBE Anchor Point") || xform.anchorPoint;
+                else if (propName === "Orientation") p = xform.property("ADBE Orientation") || xform.orientation;
                 else p = xform.property(propName);
 
                 if (p && typeof p.setValue === "function") {
@@ -382,8 +551,8 @@
         // CREATE WINDBOX + 3D CUBE LOGIC
         // ==========================================
         btnCreate.onClick = function () {
-            var comp = app.project.activeItem;
-            if (!(comp instanceof CompItem)) {
+            var comp = app.project ? app.project.activeItem : null;
+            if (!comp || !(comp instanceof CompItem)) {
                 alert("Please select or open an active Composition first.", "AE WindBox");
                 return;
             }
@@ -414,6 +583,8 @@
 
             var shouldBuildCube = chkCreateCube.value;
             var isCubeGuide = chkCubeGuide.value;
+            var cubeFillColor = hexToRgb(cpCubeFill.value);
+            var cubeStrokeColor = hexToRgb(cpCubeStroke.value);
             var cubeSidesOp = Math.max(0, Math.min(100, getNum(editCubeSidesOp, 12)));
             var cubeStrokeWidth = Math.max(0.5, getNum(editCubeStrokeW, 2));
             var cubeStrokeOp = Math.max(0, Math.min(100, getNum(editCubeStrokeOp, 90)));
@@ -424,7 +595,7 @@
             // Handle custom source layer selection
             var templateLayers = [];
             if (particleType === 2) {
-                if (comp.selectedLayers.length === 0) {
+                if (!comp.selectedLayers || comp.selectedLayers.length === 0) {
                     alert("Please select at least one layer in the composition to use as the particle source.", "AE WindBox");
                     return;
                 }
@@ -433,7 +604,9 @@
                 }
             }
 
-            app.beginUndoGroup("Create WindBox (" + sysName + ")");
+            if (app.beginUndoGroup) {
+                app.beginUndoGroup("Create WindBox (" + sysName + ")");
+            }
 
             try {
                 // 1. Create WindBox Controller Null
@@ -441,8 +614,12 @@
                 var ctrlLayer = comp.layers.addNull();
                 ctrlLayer.name = ctrlName;
                 ctrlLayer.threeDLayer = true;
-                ctrlLayer.label = 1; // Red label (Master Controller)
-                ctrlLayer.property("ADBE Transform Group").property("ADBE Position").setValue([comp.width / 2, comp.height / 2, 0]);
+                ctrlLayer.shy = false;
+                ctrlLayer.notShyable = true;
+                ctrlLayer.label = 1; // Red label in After Effects (Label 1 = Red)
+                ctrlLayer.colorLabel = "#ff3b30"; // Red label in emulator
+                setTransformVal(ctrlLayer, "Position", [comp.width / 2, comp.height / 2, 0]);
+                setTransformVal(ctrlLayer, "Anchor Point", [0, 0, 0]);
 
                 // 2. Add Expression Controls to Controller
                 // Size controls
@@ -451,9 +628,9 @@
                 addSlider(ctrlLayer, "WindBox - Size Z", sizeZ);
 
                 // Cube appearance controls
-                addColor(ctrlLayer, "WindBox - Cube Fill Color", [0.55, 0.55, 0.55, 1]); // Grey
-                addSlider(ctrlLayer, "WindBox - Cube Fill Opacity", cubeSidesOp);        // Low opacity
-                addColor(ctrlLayer, "WindBox - Cube Stroke Color", [1, 1, 1, 1]);       // White
+                addColor(ctrlLayer, "WindBox - Cube Fill Color", cubeFillColor);
+                addSlider(ctrlLayer, "WindBox - Cube Fill Opacity", cubeSidesOp);
+                addColor(ctrlLayer, "WindBox - Cube Stroke Color", cubeStrokeColor);
                 addSlider(ctrlLayer, "WindBox - Cube Stroke Width", cubeStrokeWidth);
                 addSlider(ctrlLayer, "WindBox - Cube Stroke Opacity", cubeStrokeOp);
 
@@ -543,16 +720,16 @@
                         faceRect.property("ADBE Vector Rect Size").setValue([cfg.w, cfg.h]);
                         faceRect.property("ADBE Vector Rect Size").expression = faceExprs[cfg.name].size;
 
-                        // Semitransparent Grey Fill
+                        // Semitransparent Fill
                         var faceFill = faceContents.addProperty("ADBE Vector Graphic - Fill");
-                        faceFill.property("ADBE Vector Fill Color").setValue([0.55, 0.55, 0.55, 1]);
+                        faceFill.property("ADBE Vector Fill Color").setValue(cubeFillColor);
                         faceFill.property("ADBE Vector Fill Color").expression = exprSidesFill;
                         faceFill.property("ADBE Vector Fill Opacity").setValue(cubeSidesOp);
                         faceFill.property("ADBE Vector Fill Opacity").expression = exprSidesOp;
 
-                        // White Stroke Lines
+                        // Stroke Lines
                         var faceStroke = faceContents.addProperty("ADBE Vector Graphic - Stroke");
-                        faceStroke.property("ADBE Vector Stroke Color").setValue([1, 1, 1, 1]);
+                        faceStroke.property("ADBE Vector Stroke Color").setValue(cubeStrokeColor);
                         faceStroke.property("ADBE Vector Stroke Color").expression = exprStrokeCol;
                         faceStroke.property("ADBE Vector Stroke Width").setValue(cubeStrokeWidth);
                         faceStroke.property("ADBE Vector Stroke Width").expression = exprStrokeW;
@@ -565,8 +742,8 @@
                         setTransformVal(faceLayer, "Position", cfg.pos);
                         setTransformVal(faceLayer, "Orientation", cfg.rot);
 
-                        var xf = faceLayer.property("ADBE Transform Group");
-                        var pProp = xf ? xf.property("ADBE Position") : faceLayer.property("ADBE Position");
+                        var xf = faceLayer.property("ADBE Transform Group") || faceLayer.transform;
+                        var pProp = xf ? (xf.property("ADBE Position") || xf.position) : faceLayer.property("ADBE Position");
                         if (pProp && faceExprs[cfg.name]) {
                             pProp.expression = faceExprs[cfg.name].pos;
                         }
@@ -684,7 +861,8 @@
 
                     pLayer.name = sysName + "_Particle_" + (p < 10 ? "0" + p : p);
                     pLayer.threeDLayer = true;
-                    pLayer.label = 9; // Green
+                    pLayer.shy = true;
+                    pLayer.label = 9; // Green label
 
                     // Add Particle Index Slider
                     var idxSlider = pLayer.property("ADBE Effect Parade").addProperty("ADBE Slider Control");
@@ -692,36 +870,40 @@
                     idxSlider.property("ADBE Slider Control-0001").setValue(p);
 
                     // Attach Expressions to Transform properties
-                    var xform = pLayer.property("ADBE Transform Group");
+                    var xform = pLayer.property("ADBE Transform Group") || pLayer.transform;
 
-                    var posProp = xform.property("ADBE Position");
+                    var posProp = xform.property("ADBE Position") || xform.position;
                     if (posProp) posProp.expression = posExpr;
 
-                    var rotXProp = xform.property("ADBE Rotate X") || xform.property("X Rotation");
-                    var rotYProp = xform.property("ADBE Rotate Y") || xform.property("Y Rotation");
-                    var rotZProp = xform.property("ADBE Rotate Z") || xform.property("Z Rotation");
+                    var rotXProp = xform.property("ADBE Rotate X") || xform.property("X Rotation") || xform.xRotation;
+                    var rotYProp = xform.property("ADBE Rotate Y") || xform.property("Y Rotation") || xform.yRotation;
+                    var rotZProp = xform.property("ADBE Rotate Z") || xform.property("Z Rotation") || xform.zRotation;
 
                     if (rotXProp) rotXProp.expression = rotXExpr;
                     if (rotYProp) rotYProp.expression = rotYExpr;
                     if (rotZProp) rotZProp.expression = rotZExpr;
 
-                    var opacProp = xform.property("ADBE Opacity");
+                    var opacProp = xform.property("ADBE Opacity") || xform.opacity;
                     if (opacProp) opacProp.expression = opacityExpr;
 
-                    var scaleProp = xform.property("ADBE Scale");
+                    var scaleProp = xform.property("ADBE Scale") || xform.scale;
                     if (scaleProp) scaleProp.expression = scaleExpr;
                 }
 
                 // Select the Controller layer so user can immediately animate it
-                for (var sel = 0; sel < comp.selectedLayers.length; sel++) {
-                    comp.selectedLayers[sel].selected = false;
+                if (comp.selectedLayers) {
+                    for (var sel = 0; sel < comp.selectedLayers.length; sel++) {
+                        comp.selectedLayers[sel].selected = false;
+                    }
                 }
                 ctrlLayer.selected = true;
 
             } catch (err) {
                 alert("Error building WindBox:\n" + err.toString(), "AE WindBox Error");
             } finally {
-                app.endUndoGroup();
+                if (app.endUndoGroup) {
+                    app.endUndoGroup();
+                }
             }
         };
 
@@ -729,13 +911,13 @@
         // SYNC TO CONTROLLER (Push UI -> Controller)
         // ==========================================
         btnUpdateUI.onClick = function () {
-            var comp = app.project.activeItem;
-            if (!(comp instanceof CompItem)) return;
+            var comp = app.project ? app.project.activeItem : null;
+            if (!comp || !(comp instanceof CompItem)) return;
 
             var sysName = txtSysName.text.replace(/^\s+|\s+$/g, "");
             var ctrlLayer = null;
 
-            if (comp.selectedLayers.length > 0 && comp.selectedLayers[0].name.indexOf("Controller") !== -1) {
+            if (comp.selectedLayers && comp.selectedLayers.length > 0 && comp.selectedLayers[0].name.indexOf("Controller") !== -1) {
                 ctrlLayer = comp.selectedLayers[0];
             } else {
                 try {
@@ -750,17 +932,26 @@
                 return;
             }
 
-            app.beginUndoGroup("Sync WindBox UI to Controller");
+            if (app.beginUndoGroup) {
+                app.beginUndoGroup("Sync WindBox UI to Controller");
+            }
             try {
                 function setSliderVal(effName, val) {
                     var fx = ctrlLayer.property("ADBE Effect Parade").property(effName);
                     if (fx) fx.property("ADBE Slider Control-0001").setValue(val);
                 }
 
+                function setColorVal(effName, rgbArr) {
+                    var fx = ctrlLayer.property("ADBE Effect Parade").property(effName);
+                    if (fx) fx.property("ADBE Color Control-0001").setValue(rgbArr);
+                }
+
                 setSliderVal("WindBox - Size X", Math.max(10, getNum(editSizeX, 1200)));
                 setSliderVal("WindBox - Size Y", Math.max(10, getNum(editSizeY, 800)));
                 setSliderVal("WindBox - Size Z", Math.max(10, getNum(editSizeZ, 1000)));
+                setColorVal("WindBox - Cube Fill Color", hexToRgb(cpCubeFill.value));
                 setSliderVal("WindBox - Cube Fill Opacity", Math.max(0, Math.min(100, getNum(editCubeSidesOp, 12))));
+                setColorVal("WindBox - Cube Stroke Color", hexToRgb(cpCubeStroke.value));
                 setSliderVal("WindBox - Cube Stroke Width", Math.max(0.5, getNum(editCubeStrokeW, 2)));
                 setSliderVal("WindBox - Cube Stroke Opacity", Math.max(0, Math.min(100, getNum(editCubeStrokeOp, 90))));
                 setSliderVal("WindBox - Wind Speed", getNum(editSpeed, 300));
@@ -781,7 +972,9 @@
             } catch (err) {
                 alert("Error syncing to Controller:\n" + err.toString(), "AE WindBox");
             } finally {
-                app.endUndoGroup();
+                if (app.endUndoGroup) {
+                    app.endUndoGroup();
+                }
             }
         };
 
@@ -789,13 +982,13 @@
         // READ FROM CONTROLLER (Pull Controller -> UI)
         // ==========================================
         btnLoadUI.onClick = function () {
-            var comp = app.project.activeItem;
-            if (!(comp instanceof CompItem)) return;
+            var comp = app.project ? app.project.activeItem : null;
+            if (!comp || !(comp instanceof CompItem)) return;
 
             var sysName = txtSysName.text.replace(/^\s+|\s+$/g, "");
             var ctrlLayer = null;
 
-            if (comp.selectedLayers.length > 0 && comp.selectedLayers[0].name.indexOf("Controller") !== -1) {
+            if (comp.selectedLayers && comp.selectedLayers.length > 0 && comp.selectedLayers[0].name.indexOf("Controller") !== -1) {
                 ctrlLayer = comp.selectedLayers[0];
             } else {
                 try {
@@ -816,10 +1009,21 @@
                 return fallback;
             }
 
+            function getColorVal(effName, fallbackHex) {
+                var fx = ctrlLayer.property("ADBE Effect Parade").property(effName);
+                if (fx) {
+                    var c = fx.property("ADBE Color Control-0001").value;
+                    return rgbToHex(c);
+                }
+                return fallbackHex;
+            }
+
             editSizeX.text = getSliderVal("WindBox - Size X", 1200).toString();
             editSizeY.text = getSliderVal("WindBox - Size Y", 800).toString();
             editSizeZ.text = getSliderVal("WindBox - Size Z", 1000).toString();
+            cpCubeFill.setColor(getColorVal("WindBox - Cube Fill Color", "#8C8C8C"), false);
             editCubeSidesOp.text = Math.round(getSliderVal("WindBox - Cube Fill Opacity", 12)).toString();
+            cpCubeStroke.setColor(getColorVal("WindBox - Cube Stroke Color", "#FFFFFF"), false);
             editCubeStrokeW.text = getSliderVal("WindBox - Cube Stroke Width", 2).toString();
             editCubeStrokeOp.text = Math.round(getSliderVal("WindBox - Cube Stroke Opacity", 90)).toString();
             editSpeed.text = getSliderVal("WindBox - Wind Speed", 300).toString();
@@ -843,8 +1047,8 @@
         // SELECT ALL SYSTEM LAYERS
         // ==========================================
         btnSelectSystem.onClick = function () {
-            var comp = app.project.activeItem;
-            if (!(comp instanceof CompItem)) return;
+            var comp = app.project ? app.project.activeItem : null;
+            if (!comp || !(comp instanceof CompItem)) return;
 
             var sysName = txtSysName.text.replace(/^\s+|\s+$/g, "");
             for (var i = 1; i <= comp.numLayers; i++) {
