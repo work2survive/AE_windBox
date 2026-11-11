@@ -46,11 +46,15 @@ All parameters are rigged to the master **`[SystemName]_Controller`** layer as n
 
 | Parameter | Type | Description |
 | :--- | :--- | :--- |
+| **Random Seed** | *Slider* | Master integer seed governing deterministic PRNG for all particles (`seed + pIndex`). |
 | **Size X, Y, Z** | *Slider* | Defines 3D volume dimensions. Drives both particle wrapping and the 6 faces of the virtual cube. |
 | **Wind Speed** | *Slider* | Speed of particles along the wind direction vector (in pixels/second). |
 | **Direction X, Y, Z** | *Slider* | 3D directional vector controlling wind trajectory. Auto-normalizes in 3D space. |
 | **Align to Wind** | *Checkbox* | When enabled, dynamically rotates particles to orient along the wind vector. |
 | **Number of Particles** | *Slider* | Controls active particle count with smooth visibility culling (opacity & scale). |
+| **Fade In / Out Distance** | *Slider* | Boundary fade distances (px) that transition opacity smoothly from 0 to 100% at birth and 100% to 0 at exit, eliminating wrapping pops. |
+| **Size Random (%)** | *Slider* | Percentage of particle scale variation applied at birth. |
+| **Scale Wiggle Freq & Amp**| *Slider* | Dynamic scale breathing/pulsating frequency (Hz) and amplitude (%). |
 | **Cube Guide Layer** | *Checkbox* | Toggles Guide Layer status on the virtual bounding box. |
 | **Cube Fill & Stroke** | *Color / Slider* | Live color pickers, opacity, and stroke width for the virtual cube faces. |
 | **Pos Wiggle Freq & Amp** | *Slider* | 3-axis positional turbulence frequency (Hz) and amplitudes (px) for X, Y, Z. |
