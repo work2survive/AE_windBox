@@ -57,6 +57,8 @@ All parameters are rigged to the master **`[SystemName]_Controller`** layer as n
 | **Fade Near Camera** | *Checkbox* | When enabled (default ON), fades out particles that come too close to the active camera lens to prevent clipping into the viewer. |
 | **Camera Fade Dist** | *Slider* | Distance in pixels (default 250px) in front of the active camera lens across which opacity smoothly fades from 100% to 0%. |
 | **Size Random (%)** | *Slider* | Percentage of particle scale variation applied at birth. |
+| **Random Flip Horizontal** | *Checkbox* | When enabled, randomly flips ~50% of particles horizontally (Scale X = -100%) at birth based on the master seed. |
+| **Random Flip Vertical** | *Checkbox* | When enabled, randomly flips ~50% of particles vertically (Scale Y = -100%) at birth based on the master seed. |
 | **Scale Wiggle Freq & Amp**| *Slider* | Dynamic scale breathing/pulsating frequency (Hz) and amplitude (%). |
 | **Cube Guide Layer** | *Checkbox* | Toggles Guide Layer status on the virtual bounding box. |
 | **Cube Fill & Stroke** | *Color / Slider* | Live color pickers, opacity, and stroke width for the virtual cube faces. |
