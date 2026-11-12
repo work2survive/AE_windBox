@@ -54,6 +54,8 @@ All parameters are rigged to the master **`[SystemName]_Controller`** layer as n
 | **Align to Wind** | *Checkbox* | When enabled, dynamically rotates particles to orient along the wind vector. |
 | **Number of Particles** | *Slider* | Controls active particle count with smooth visibility culling (opacity & scale). |
 | **Fade In / Out Distance** | *Slider* | Boundary fade distances (px) that transition opacity smoothly from 0 to 100% at birth and 100% to 0 at exit, eliminating wrapping pops. |
+| **Fade Near Camera** | *Checkbox* | When enabled (default ON), fades out particles that come too close to the active camera lens to prevent clipping into the viewer. |
+| **Camera Fade Dist** | *Slider* | Distance in pixels (default 250px) in front of the active camera lens across which opacity smoothly fades from 100% to 0%. |
 | **Size Random (%)** | *Slider* | Percentage of particle scale variation applied at birth. |
 | **Scale Wiggle Freq & Amp**| *Slider* | Dynamic scale breathing/pulsating frequency (Hz) and amplitude (%). |
 | **Cube Guide Layer** | *Checkbox* | Toggles Guide Layer status on the virtual bounding box. |
