@@ -461,7 +461,7 @@
             dirY: 0.3,
             dirZ: 0.2,
             alignToWind: true,
-            numParticles: 50,
+            numParticles: 24,
             fadeInDist: 180,
             fadeOutDist: 180,
             cameraFade: true,
@@ -543,7 +543,7 @@
             dirY: -0.2,
             dirZ: 0.4,
             alignToWind: false,
-            numParticles: 70,
+            numParticles: 30,
             fadeInDist: 150,
             fadeOutDist: 150,
             cameraFade: true,
@@ -625,7 +625,7 @@
             dirY: 0.0,
             dirZ: 0.0,
             alignToWind: false,
-            numParticles: 60,
+            numParticles: 25,
             fadeInDist: 120,
             fadeOutDist: 120,
             cameraFade: true,
@@ -666,7 +666,7 @@
             dirY: 0.2,
             dirZ: 0.1,
             alignToWind: true,
-            numParticles: 60,
+            numParticles: 25,
             fadeInDist: 120,
             fadeOutDist: 120,
             cameraFade: true,
@@ -1108,15 +1108,22 @@
         chkAlignWind.value = true;
         chkAlignWind.helpTip = "Automatically rotates particles towards the wind direction vector with aerodynamic tumble";
 
-        // Particle Count Panel
-        var pnlCount = tabFlow.add("panel", undefined, "Particles Count - Animatable");
-        pnlCount.orientation = "row";
-        pnlCount.alignChildren = ["left", "center"];
-        pnlCount.spacing = 6;
+        // Particle Count Panel (Capped at 30 max for AE expression performance)
+        var pnlCount = tabFlow.add("panel", undefined, "Particles Count (Max 30) - Animatable");
+        pnlCount.orientation = "column";
+        pnlCount.alignChildren = ["left", "top"];
+        pnlCount.spacing = 4;
 
-        pnlCount.add("statictext", undefined, "Number of Particles:");
-        var editCount = pnlCount.add("edittext", undefined, "50");
+        var grpCountRow = pnlCount.add("group");
+        grpCountRow.orientation = "row";
+        grpCountRow.alignChildren = ["left", "center"];
+        grpCountRow.spacing = 6;
+        grpCountRow.add("statictext", undefined, "Number of Particles (Max 30):");
+        var editCount = grpCountRow.add("edittext", undefined, "20");
         editCount.characters = 5;
+        editCount.helpTip = "Number of active particles (capped at 30 max). Each particle is a separate expression-driven 3D layer; keeping count limited is essential for viewport performance. For large particle volumes (hundreds/thousands), use a dedicated plugin like Maxon Trapcode Particular.";
+
+        var lblCountWarn = pnlCount.add("statictext", undefined, "Limited to 30 max for performance. For large amounts, use Trapcode Particular.");
 
         // Boundary & Camera Fade Panel
         var pnlFade = tabFlow.add("panel", undefined, "Particle Fade (Boundary & Camera) - Animatable");
@@ -1443,7 +1450,7 @@
             if (preset.dirY !== undefined) editDirY.text = String(preset.dirY);
             if (preset.dirZ !== undefined) editDirZ.text = String(preset.dirZ);
             if (preset.alignToWind !== undefined) chkAlignWind.value = Boolean(preset.alignToWind);
-            if (preset.numParticles !== undefined) editCount.text = String(preset.numParticles);
+            if (preset.numParticles !== undefined) editCount.text = String(Math.min(30, Math.max(1, preset.numParticles)));
             if (preset.fadeInDist !== undefined) editFadeInDist.text = String(preset.fadeInDist);
             if (preset.fadeOutDist !== undefined) editFadeOutDist.text = String(preset.fadeOutDist);
             if (preset.cameraFade !== undefined) chkCameraFade.value = Boolean(preset.cameraFade);
@@ -1595,9 +1602,9 @@
 
             var comp = parentComp;
 
-            // Generate random hex number for precomp: windowbox_+random hex
+            // Generate random hex number for precomp: windbox_+random hex
             var randHex = Math.floor(0x1000 + Math.random() * 0xEFFF).toString(16);
-            var precompName = "windowbox_" + randHex;
+            var precompName = "windbox_" + randHex;
             txtSysName.text = precompName;
 
             var sysName = precompName;
@@ -1611,7 +1618,7 @@
             var dirY = getNum(editDirY, 0.3);
             var dirZ = getNum(editDirZ, 0.2);
             var alignToWind = chkAlignWind.value;
-            var numParticles = Math.max(1, Math.round(getNum(editCount, 50)));
+            var numParticles = Math.max(1, Math.min(30, Math.round(getNum(editCount, 20))));
             var fadeInDist = Math.max(0, getNum(editFadeInDist, 150));
             var fadeOutDist = Math.max(0, getNum(editFadeOutDist, 150));
             var isCamFade = chkCameraFade.value;
