@@ -89,8 +89,8 @@ All parameters are rigged to the master **`[SystemName]_Controller`** layer as n
 3. Select a preset (e.g. **🍃 Falling Leaves**, **☁️ Drifting Clouds**, **⭐ Stars**, or **🎬 Project Composition**).
 4. Customize dimensions, wind speed, wind direction vector, and wiggle parameters.
 5. Click **Build / Create WindBox + Cube**.
-6. A master controller null, 6 guide layer cube faces, and particles will be automatically created and animated in 3D space!
-7. All parameters can be keyframed and customized directly on the Master Controller null in After Effects via native Expression Controls.
+6. All system layers (Master Controller null, 6 guide layer cube faces, and particles) are automatically moved into a dedicated precomposition named **`windowbox_[random_hex]`** (e.g. `windowbox_a4b2`).
+7. **Parent Layer Controls**: In your working parent composition, the resulting `windowbox_[random_hex]` precomp layer has 3D Collapsed Transformations enabled (`collapseTransformation = true`) and houses all master Effect Controls. You can keyframe and animate every parameter directly on the parent layer in the Timeline and Effect Controls panel!
 
 ---
 
