@@ -75,6 +75,7 @@ All parameters are rigged to the master **`[SystemName]_Controller`** layer as n
 | **Wind Speed** | *Slider* | Speed of particles along the wind direction vector (in pixels/second). |
 | **Direction X, Y, Z** | *Slider* | 3D directional vector controlling wind trajectory. Auto-normalizes in 3D space. |
 | **Align to Wind** | *Checkbox* | When enabled, dynamically rotates particles to orient along the wind vector. |
+| **Start with Empty Box** | *Checkbox* | When enabled, starts with an empty volume at $t=0$ by hiding particles initially until they exit boundaries and are (re-born) entering from out of boundaries. |
 | **Number of Particles** | *Slider* | Controls active particle count (capped at **30 max** for viewport performance; for large particle amounts use a proper plugin like Trapcode Particular). |
 | **Fade Mode (0=None, 1=Dist, 2=Frames)** | *Slider* | Chooses boundary fade mode: `0` = None (default, no boundary fading), `1` = Distance to boundary edge (px), `2` = Duration in timeline frames (fades in born particles from timeline start and boundary wraps smoothly). Operates independently alongside 'Fade Near Camera'. |
 | **Comp Playback Mode (1 to 5)** | *Slider* | Time remapping playback mode for composition and layer particles: `1` = Random Paused Frame (Default), `2` = Loop (Cycle) - Restarts on Re-born, `3` = Loop (Pingpong) - Restarts on Re-born, `4` = Loop (Pingpong, Random Direction) - Restarts on Re-born, `5` = Start Always at Frame 1 - Restarts on Re-born. |
