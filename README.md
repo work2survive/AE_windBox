@@ -52,6 +52,18 @@ The primary purpose of **AE WindBox** is to create a **virtual 3D cube bounding 
 
 ---
 
+### ⚙️ Performance Tuning: Adjusting the Particle Limit
+The particle safety limit is defined as a clearly commented configuration constant at the very top of `AE_WindBox_Panel.jsx`:
+```javascript
+// =========================================================================
+// PERFORMANCE CONFIGURATION: MAXIMUM PARTICLE LIMIT
+// =========================================================================
+// ---> YOU CAN EDIT THIS VALUE BELOW TO CHANGE THE UPPER SAFETY LIMIT: <---
+var MAX_PARTICLE_LIMIT = 30; // [DEFAULT: 30] Change to any integer (e.g. 15, 30, 50, 100)
+// =========================================================================
+```
+If your workstation has a fast multi-core processor and you wish to increase or decrease this limit, open `AE_WindBox_Panel.jsx` in any code editor (VS Code, Notepad, ExtendScript Toolkit) and change `MAX_PARTICLE_LIMIT` to your preferred threshold.
+
 ## 🚀 Animatable Parameters
 
 All parameters are rigged to the master **`[SystemName]_Controller`** layer as native Expression Controls:
