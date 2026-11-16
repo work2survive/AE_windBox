@@ -1,6 +1,6 @@
 // Co-authored & architected with Google DeepMind Antigravity.
 // =============================================================================
-// ADOBE AFTER EFFECTS EXTENDSCRIPT & SCRIPTUI PANEL: AE WINDBOX v1.1
+// ADOBE AFTER EFFECTS EXTENDSCRIPT & SCRIPTUI PANEL: AE WINDBOX v1.2
 // =============================================================================
 //
 // PURPOSE:
@@ -955,11 +955,11 @@
     // ==========================================
     function buildWindBoxUI(thisObj) {
         var isPanel = (thisObj instanceof Panel);
-        var win = isPanel ? thisObj : new Window("palette", "AE WindBox v1.1", undefined, {
+        var win = isPanel ? thisObj : new Window("palette", "AE WindBox v1.2", undefined, {
             resizeable: true
         });
         if (!(thisObj instanceof Panel)) {
-            win.text = "AE WindBox v1.1";
+            win.text = "AE WindBox v1.2";
         }
 
         win.orientation = "column";
@@ -977,7 +977,7 @@
         pnlHeader.spacing = 3;
         pnlHeader.margins = [10, 8, 10, 8];
 
-        var lblDesc = pnlHeader.add("statictext", undefined, "v1.1 - Procedural 3D Wind Volume Particle System with Virtual Guide Cube.");
+        var lblDesc = pnlHeader.add("statictext", undefined, "v1.2 - Procedural 3D Wind Volume Particle System with Virtual Guide Cube & Precomp Rig.");
 
         // ---------- SYSTEM NAME & PRESETS ----------
         var headerGroup = win.add("group");
@@ -1006,7 +1006,7 @@
         btnHelp.maximumSize = [24, 22];
         btnHelp.onClick = function () {
             alert(
-                "AE WindBox + 3D Cube Maker (v1.1)\n" +
+                "AE WindBox + 3D Cube Maker (v1.2)\n" +
                 "=================================\n" +
                 "1. Virtual 3D Cube (Guide Layer):\n" +
                 "   Defines the 3D wind boundary. Marked as Guide Layer by default so it stays\n" +
