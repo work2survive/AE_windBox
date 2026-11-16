@@ -76,7 +76,11 @@ All parameters are rigged to the master **`[SystemName]_Controller`** layer as n
 | **Direction X, Y, Z** | *Slider* | 3D directional vector controlling wind trajectory. Auto-normalizes in 3D space. |
 | **Align to Wind** | *Checkbox* | When enabled, dynamically rotates particles to orient along the wind vector. |
 | **Number of Particles** | *Slider* | Controls active particle count (capped at **30 max** for viewport performance; for large particle amounts use a proper plugin like Trapcode Particular). |
-| **Fade In / Out Distance** | *Slider* | Boundary fade distances (px) that transition opacity smoothly from 0 to 100% at birth and 100% to 0 at exit, eliminating wrapping pops. |
+| **Fade Mode (1=Dist, 2=Frames)** | *Slider* | Chooses fade mode: `1` = Distance to boundary edge (px), `2` = Duration in timeline frames. |
+| **Fade In Distance** | *Slider* | Spatial distance (px) from entry edge over which born particles fade smoothly from 0% to 100% opacity. |
+| **Fade Out Distance** | *Slider* | Spatial distance (px) to exit edge over which dying/exiting particles fade smoothly from 100% to 0% opacity. |
+| **Fade In Frames** | *Slider* | Duration in timeline frames over which born particles fade smoothly from 0% to 100% opacity. |
+| **Fade Out Frames** | *Slider* | Duration in timeline frames over which dying/exiting particles fade smoothly from 100% to 0% opacity. |
 | **Fade Near Camera** | *Checkbox* | When enabled (default ON), fades out particles that come too close to the active camera lens to prevent clipping into the viewer. |
 | **Camera Fade Dist** | *Slider* | Distance in pixels (default 250px) in front of the active camera lens across which opacity smoothly fades from 100% to 0%. |
 | **Size Random (%)** | *Slider* | Percentage of particle scale variation applied at birth. |
