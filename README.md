@@ -77,6 +77,7 @@ All parameters are rigged to the master **`[SystemName]_Controller`** layer as n
 | **Align to Wind** | *Checkbox* | When enabled, dynamically rotates particles to orient along the wind vector. |
 | **Number of Particles** | *Slider* | Controls active particle count (capped at **30 max** for viewport performance; for large particle amounts use a proper plugin like Trapcode Particular). |
 | **Fade Mode (0=None, 1=Dist, 2=Frames)** | *Slider* | Chooses fade mode: `0` = None (default, no boundary fade; camera fade active), `1` = Distance to boundary edge (px), `2` = Duration in timeline frames. (When mode 1 or 2 is active, camera fade is automatically bypassed to guarantee boundary fade priority). |
+| **Comp Playback Mode (1 to 5)** | *Slider* | Time remapping playback mode for composition and layer particles: `1` = Random paused frame at birth (Default), `2` = Random start frame, loop (cycle), `3` = Random start frame, loop (bounce), `4` = Random start frame, random direction (forward/backward), `5` = Start always at frame 1, loop. |
 | **Fade In Distance** | *Slider* | Spatial distance (px) from entry edge over which born particles fade smoothly from 0% to 100% opacity. |
 | **Fade Out Distance** | *Slider* | Spatial distance (px) to exit edge over which dying/exiting particles fade smoothly from 100% to 0% opacity. |
 | **Fade In Frames** | *Slider* | Duration in timeline frames over which born particles fade smoothly from 0% to 100% opacity. |
